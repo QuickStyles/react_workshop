@@ -26,10 +26,20 @@ class App extends Component {
     this.setState({[name]: value})
   }
 
-  handleCreateItem(data) { // invoked when we submit the form
+  handleCreateItem() { // invoked when we submit the form
+    const data = {
+      title: this.state.title,
+      description: this.state.description,
+      price: this.state.price,
+    }
     requests.create(data) // sending a fetch request to create new item
     .then(data => {
       const { id } = data; // data.id
+      this.setState({
+        title: '',
+        description: '',
+        price: ''
+      })
       return requests.getOne(id) // when we get the new item back we use the id to fetch it's data (title, description, price, tags)
     })
     .then(data => { // when we recieve the item's data back 
