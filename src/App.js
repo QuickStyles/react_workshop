@@ -17,6 +17,13 @@ class App extends Component {
       price: ''
     }
     this.handleCreateItem = this.handleCreateItem.bind(this)
+    this.handleInputChange = this.handleInputChange.bind(this)
+  }
+
+  handleInputChange(inputData) {
+    console.log(inputData);
+    const { name, value } = inputData;
+    this.setState({[name]: value})
   }
 
   handleCreateItem(data) { // invoked when we submit the form
@@ -82,9 +89,10 @@ class App extends Component {
           title={this.state.title}
           description={this.state.description}
           price={this.state.price}
+          onInputChange={this.handleInputChange}
         />
         <ul>
-          {this.state.items.map(item => <li key={item.title}>{item.title}</li>)}
+          {this.state.items.map((item, id) => <li key={id}>{item.title}</li>)}
         </ul>
       </div>
     );
