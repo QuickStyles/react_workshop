@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import NewItemForm from './components/NewItemForm';
+import requests from './requests'
 
 import './App.css';
 
@@ -11,7 +12,27 @@ class App extends Component {
       items: [{title: 'stuff'}, {title: 'birds'}, {title: 'bees'}],
       timer: 3,
       user: null,
+      title: '',
+      description: '',
+      price: ''
     }
+    this.handleCreateItem = this.handleCreateItem.bind(this)
+  }
+
+  handleCreateItem(data) { // invoked when we submit the form
+    requests.create(data) // sending a fetch request to create new item
+    .then(data => {
+      const { id } = data; // data.id
+      return requests.getOne(id) // when we get the new item back we use the id to fetch it's data (title, description, price, tags)
+    })
+    .then(data => { // when we recieve the item's data back 
+      this.setState((state) => { // we add that one item to our current list of items
+      // const newArray = [].concat(state.items)
+        return {
+          items: [data, ...state.items] // ...state.items is copying all of the current state's items and appending data (our new item) to the current list
+        }
+      })
+    })
   }
   componentDidMount() {
     // this happens immediately after a React component gets placed onto the dom
@@ -56,9 +77,14 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <NewItemForm />
+        <NewItemForm 
+          onCreateItem={this.handleCreateItem} 
+          title={this.state.title}
+          description={this.state.description}
+          price={this.state.price}
+        />
         <ul>
-          {this.state.items.map(item => <li>{item.title}</li>)}
+          {this.state.items.map(item => <li key={item.title}>{item.title}</li>)}
         </ul>
       </div>
     );
