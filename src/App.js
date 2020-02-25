@@ -10,6 +10,7 @@ import React, {useState, useEffect} from 'react'
 
 import NewItemForm from './components/NewItemForm';
 import requests from './requests'
+import Timer from './components/Timer';
 
 import './App.css';
 
@@ -75,6 +76,7 @@ export default function App() {
 
   return (
     <div className="App">
+      <Timer/>
       <NewItemForm 
         onCreateItem={handleCreateItem} 
         title={input.title}
