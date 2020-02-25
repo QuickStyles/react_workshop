@@ -1,63 +1,50 @@
-import React, { Component } from 'react';
+// WHy would we want to use hooks?
+// 1) keeps file sizes small
+// 2) a lot less boilerplate code
+// 3) its easier to test
+// 4) a lot of stateful logic you can re-use
+// 5) probably make file sizes 90% smaller
+// 6) a lot of libraries use it. Facebook really wants you to use it
+
+import React, {useState, useEffect} from 'react'
 
 import NewItemForm from './components/NewItemForm';
 import requests from './requests'
 
 import './App.css';
 
-class App extends Component {
-  constructor(props) {
-    super(props) // must super props for React to work
-    this.state = {
-      items: [{title: 'stuff'}, {title: 'birds'}, {title: 'bees'}],
-      timer: 3,
-      user: null,
-      title: '',
-      description: '',
-      price: ''
-    }
-    this.handleCreateItem = this.handleCreateItem.bind(this)
-    this.handleInputChange = this.handleInputChange.bind(this)
-  }
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [items, setItems] = useState([{title: 'stuff'}, {title: 'birds'}, {title: 'bees'}]);
 
-  handleInputChange(inputData) {
-    console.log(inputData);
-    const { name, value } = inputData;
-    this.setState({[name]: value})
-  }
+  const [input, setInput] = useState({
+    title: '',
+    description: '', 
+    price: ''
+  })
 
-  handleCreateItem() { // invoked when we submit the form
-    const data = {
-      title: this.state.title,
-      description: this.state.description,
-      price: this.state.price,
-    }
-    requests.create(data) // sending a fetch request to create new item
+  function handleCreateItem() {
+    requests.create(input)
     .then(data => {
-      const { id } = data; // data.id
-      this.setState({
+      const { id } = data;
+      setInput({
         title: '',
-        description: '',
+        description: '', 
         price: ''
       })
-      return requests.getOne(id) // when we get the new item back we use the id to fetch it's data (title, description, price, tags)
+      return requests.getOne(id)
     })
-    .then(data => { // when we recieve the item's data back 
-      this.setState((state) => { // we add that one item to our current list of items
-      // const newArray = [].concat(state.items)
-        return {
-          items: [data, ...state.items] // ...state.items is copying all of the current state's items and appending data (our new item) to the current list
-        }
-      })
+    .then(data => {
+      setItems([data, ...items])
     })
   }
-  componentDidMount() {
-    // this happens immediately after a React component gets placed onto the dom
-    // setTimeout(() => {
-    //   this.setState({
-    //     items: [{title: 'apples'}]
-    //   })
-    // }, 3000)
+
+  function handleInputChange(inputData) {
+    const data = {[inputData.name]: inputData.value};
+    setInput({...input, ...data})
+  }
+
+  useEffect(() => {
     const loginData = {
       email: 'js@winterfell.gov',
       password: 'supersecret'
@@ -73,40 +60,31 @@ class App extends Component {
       },
     ).then(res => res.json())
     .then(data => {
-      this.setState({user: data.user})
+      setUser(data.user)
     })
+  }, []) // useState accepts a 2nd argument it uses to determine when it should trigger. If you pass it an empty array it will only trigger once on component mount
 
+  // populate the items array
+  useEffect(() => {
     fetch(`http://localhost:3000/api/v1/products`)
       .then(res => res.json())
       .then(data => {
-        // this.setState({
-        //   items: data,
-        //   timer: this.state.timer +1,
-        // }); // this is bad because setState is async there's no garauntee that this.state.timer is what you think it is.
-        this.setState((state, props) => {
-          return {
-            items: data,
-            timer: state.timer + 1, // because the new timer state relies on the old timer state we want to pass a callback into setState instead of just an object
-          }
-        })
+        setItems(data)
       })
-  }
-  render() {
-    return (
-      <div className="App">
-        <NewItemForm 
-          onCreateItem={this.handleCreateItem} 
-          title={this.state.title}
-          description={this.state.description}
-          price={this.state.price}
-          onInputChange={this.handleInputChange}
-        />
-        <ul>
-          {this.state.items.map((item, id) => <li key={id}>{item.title}</li>)}
-        </ul>
-      </div>
-    );
-  }
-}
+  }, [])
 
-export default App;
+  return (
+    <div className="App">
+      <NewItemForm 
+        onCreateItem={handleCreateItem} 
+        title={input.title}
+        description={input.description}
+        price={input.price}
+        onInputChange={handleInputChange}
+      />
+      <ul>
+      {items.map((item, id) => <li key={id}>{item.title}</li>)}
+      </ul>
+    </div>
+  );
+}
